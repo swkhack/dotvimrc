@@ -1,0 +1,32 @@
+inoremap <leader>; <esc>:execute "normal! mqA;"<esc>`q
+au BufNewFile,BufRead *.asm setf nasm
+
+nnoremap <leader>g :set operatorfunc=GrepOperator<cr>g@
+vnoremap <leader>g :<c-u>call GrepOperator(visualmode())<cr>
+
+function! GrepOperator(type)
+    if a:type ==# 'v'
+        normal! `<v`>y
+    elseif a:type ==# 'char'
+        normal! `[v`]y
+    else
+        return
+    endif
+
+    silent execute "grep -R " . shellescape(@@) . " ."
+endfunction
+unmap ;
+
+"let g:quickfix_is_open = 0
+"
+"function! QuickfixToggle()
+"    if g:quickfix_is_open
+"        cclose
+"        let g:quickfix_is_open = 0
+"       execute g:quickfix_returen_to_window . "wincmd w"
+"   else
+"   	let g:quickfix_returen_to_window = winnr()
+"       copen
+"       let g:quickfix_is_open = 1
+"   endif
+"endfunction
