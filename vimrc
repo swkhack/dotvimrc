@@ -22,9 +22,7 @@
 "==========================================
 " Initial Plugin 加载插件
 "==========================================
-"if filereadable(expand("./.vimrc.before"))
-  "source ./.vimrc.before
-"endif
+
 
 " 修改leader键
 let mapleader = ','
@@ -87,6 +85,16 @@ if has('persistent_undo')
   set undofile
   " set undodir=/tmp/vimundo/
 endif
+" if has('persistent_undo')
+  " " How many undos
+  " set undolevels=1000
+  " " number of lines to save for undo
+  " set undoreload=10000
+  " " So is persistent undo ...
+  " "set undofile
+  " set noundofile
+  " " set undodir=/tmp/vimundo/
+" endif
 
 set wildignore=*.swp,*.bak,*.pyc,*.class,.svn
 
@@ -161,6 +169,7 @@ set nowrap
 set showmatch
 " How many tenths of a second to blink when matching brackets
 set matchtime=2
+
 
 " 设置文内智能搜索提示
 " 高亮search命中的文本
@@ -241,6 +250,15 @@ function! NumberToggle()
 endfunc
 nnoremap <C-n> :call NumberToggle()<cr>
 
+" 防止tmux下vim的背景色显示异常
+" Refer: http://sunaku.github.io/vim-256color-bce.html
+if &term =~ '256color'
+  " disable Background Color Erase (BCE) so that color schemes
+  " render properly when inside 256-color tmux and GNU screen.
+  " see also http://snk.tuxfamily.org/log/vim-256color-bce.html
+  set t_ut=
+endif
+
 "==========================================
 " FileEncode Settings 文件编码,格式
 "==========================================
@@ -282,8 +300,21 @@ set wildignore=*.o,*~,*.pyc,*.class
 
 " 离开插入模式后自动关闭预览窗口
 autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+
+
 " 回车即选中当前项
 inoremap <expr> <CR>       pumvisible() ? "\<C-y>" : "\<CR>"
+
+" In the quickfix window, <CR> is used to jump to the error under the
+" cursor, so undefine the mapping there.
+autocmd BufReadPost quickfix nnoremap <buffer> <CR> <CR>
+" quickfix window  s/v to open in split window,  ,gd/,jd => quickfix window => open it
+autocmd BufReadPost quickfix nnoremap <buffer> v <C-w><Enter><C-w>L
+autocmd BufReadPost quickfix nnoremap <buffer> s <C-w><Enter><C-w>K
+
+" command-line window
+autocmd CmdwinEnter * nnoremap <buffer> <CR> <CR>
+
 
 " 上下左右键的行为 会显示其他信息
 inoremap <expr> <Down>     pumvisible() ? "\<C-n>" : "\<Down>"
@@ -366,6 +397,24 @@ map <C-j> <C-W>j
 map <C-k> <C-W>k
 map <C-h> <C-W>h
 map <C-l> <C-W>l
+
+
+" http://stackoverflow.com/questions/13194428/is-better-way-to-zoom-windows-in-vim-than-zoomwin
+" Zoom / Restore window.
+function! s:ZoomToggle() abort
+    if exists('t:zoomed') && t:zoomed
+        execute t:zoom_winrestcmd
+        let t:zoomed = 0
+    else
+        let t:zoom_winrestcmd = winrestcmd()
+        resize
+        vertical resize
+        let t:zoomed = 1
+    endif
+endfunction
+command! ZoomToggle call s:ZoomToggle()
+nnoremap <silent> <Leader>z :ZoomToggle<CR>
+
 
 " Go to home and end using capitalized directions
 noremap H ^
@@ -479,7 +528,7 @@ vnoremap <leader>y "+y
 " nnoremap <silent> p p`]
 
 " select all
-map <Leader>sa ggVG"
+map <Leader>sa ggVG
 
 " select block
 nnoremap <leader>v V`}
@@ -523,9 +572,13 @@ nmap <silent> <leader>sv :so $MYVIMRC<CR>
 
 " 具体编辑文件类型的一般设置，比如不要 tab 等
 autocmd FileType python set tabstop=4 shiftwidth=4 expandtab ai
-autocmd FileType ruby set tabstop=2 shiftwidth=2 softtabstop=2 expandtab ai
+
+autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtabstop=2 expandtab ai
 autocmd BufRead,BufNewFile *.md,*.mkd,*.markdown set filetype=markdown.mkd
 autocmd BufRead,BufNewFile *.part set filetype=html
+" disable showmatch when use > in php
+au BufWinEnter *.php set mps-=<:>
+
 
 
 " 保存python文件时删除多余空格
@@ -645,3 +698,6 @@ highlight SpellLocal term=underline cterm=underline
 if filereadable(expand("~/.vimrc.after"))
   source ~/.vimrc.after
 endif
+
+
+
